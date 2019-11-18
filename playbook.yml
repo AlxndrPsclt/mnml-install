@@ -1,0 +1,9 @@
+---
+- hosts: all
+  gather_facts: yes
+
+  roles:
+    #Minimal config
+    - role: minimal
+
+#    - meta: end_play    #Usefull for dev: ends the play right here
