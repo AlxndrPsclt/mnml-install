@@ -23,6 +23,7 @@
       - avahi-daemon
       - avahi-dnsconf
       - font-iosevka-nerd   #TODO: Check if this works and is the best solution
+      - mlocate
     state: latest
     update_cache: yes
 
