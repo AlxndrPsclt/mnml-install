@@ -1,4 +1,4 @@
 ---
 # vars file for minimal
 links_to_create :
-  - { dest: '{{ HOME }}/.config/i3', src: '{{ CONFIG_PERSO }}/i3' }
+  #  - { dest: '{{ HOME }}/.ssh/config', src: '{{ CONFIG_PERSO }}/ssh/config' }

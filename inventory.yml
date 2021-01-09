@@ -1,8 +1,10 @@
 all:
     hosts:
-      192.168.1.43
+      172.16.42.1
     vars:
       ansible_connection: ssh
       ansible_user: alex
-      HOME: "{{ hostvars['192.168.1.43']['ansible_env']['HOME'] }}"
+      HOME: "/home/alex"
+      LOCAL_HOME: "/home/alex"
+      USER: "alex"
       CONFIG_PERSO: "{{ HOME }}/.config/perso"

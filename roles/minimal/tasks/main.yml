@@ -8,50 +8,26 @@
   become: yes
   apk:
     name:
+      - xorg-server
+      - bspwm
       - git
       - vim
       - fzf
       - onboard
       - dbus-x11
-      - man
-      - man-pages
       - less
       - the_silver_searcher
-      - avahi
       - libx11-dev
       - libxft-dev
-      - avahi-daemon
-      - avahi-dnsconf
       - font-iosevka-nerd   #TODO: Check if this works and is the best solution
       - mlocate
+      - buildbase
+      - feh
+      - sxhkd
     state: latest
     update_cache: yes
 
     #TODO: Add st install
-
-    #- name: Clone yay repo
-    #  git:
-    #    repo: 'https://aur.archlinux.org/yay.git'
-    #    dest: '/tmp/yay'
-    #    depth: 1
-    #    force: yes
-    #  when: is_yay_present.stdout == ""
-
-- name: enable services avahi-daemon and ensure it is not masked
-  become: yes
-  systemd:
-    name: avahi-daemon
-    state: started
-    enabled: yes
-    masked: no
-
-- name: enable services avahi-daemon and ensure it is not masked
-  become: yes
-  systemd:
-    name: avahi-dnsconf
-    state: started
-    enabled: yes
-    masked: no
 
 - name: Configs git usual name
   git_config:
@@ -71,7 +47,42 @@
     scope: global
     value: vim
 
-#TODO: Import ssh key
+#TODO: Import gpg key
+
+- name: Create keys directory
+  become: yes
+  file:
+    path: "{{ HOME }}/.ssh/keys"
+    group: "wheel"
+    owner: "{{ USER }}"
+    mode: "0755"
+    state: directory
+
+- name: Copy public ssh deploy key from local to host, needed to clone configs
+  copy:
+    src: "{{ item }}"
+    dest: "{{ HOME }}/.ssh/keys/{{ item | basename }}"
+    owner: "{{ USER }}"
+    group: "wheel"
+    mode: '0755'
+  with_fileglob:
+    - '{{ LOCAL_HOME }}/.ssh/keys/*.pub'
+
+- name: Copy private ssh deploy key from local to host, needed to clone configs
+  copy:
+    src: "{{ item }}"
+    dest: "{{ HOME }}/.ssh/keys/{{ item | basename }}"
+    owner: "{{ USER }}"
+    group: "wheel"
+    mode: '0600'
+  with_fileglob:
+    - '{{ LOCAL_HOME }}/.ssh/keys/*.priv'
+
+      #- name: Generate local SSH keys
+      #  shell: "ssh-keygen -t ed25519 -f {{ HOME }}/.ssh/id_ed25519 -q -N ''"
+      #  args:
+      #    creates: "{{ HOME }}/.ssh/id_ed25519"
+
 #TODO: Extract variables like alxndrpsclt and put it in a playbook config file
 #
 
@@ -83,16 +94,17 @@
 
 - name: Clone personal configs
   git:
-    repo: 'https://github.com/AlxndrPsclt/mnml-config.git'
+    repo: 'git@github.com:AlxndrPsclt/mnml-config.git'
     dest: "{{ HOME }}/.config/perso"
+    key_file: "{{ HOME }}/.ssh/keys/id_ed25519.deploy.github.priv"
 
-- name: Register existence of workstation config links
+- name: Register existence of mnml config links
   stat:
     path: "{{ item.dest }}"
   loop: "{{ links_to_create }}"
   register: link_register
 
-- name: Remove workstation config file if some default exists (not links)
+- name: Remove mnml config file if some default exists (not links)
   file:
     path: "{{ item.stat.path }}"
     state: absent
@@ -105,27 +117,6 @@
     dest: "{{ item.dest }}"
     state: link
   loop: "{{ links_to_create }}"
-
-  #- name: Register existence of workstation config links needing sudo
-  #  stat:
-  #    path: "{{ item.dest }}"
-  #  loop: "{{ links_to_create_sudo }}"
-  #  register: link_register_sudo
-  #
-  #- name: Remove file to create links (sudo)
-  #  file:
-  #    path: "{{ item.stat.path }}"
-  #    state: absent
-  #  loop: "{{ link_register_sudo.results }}"
-  #  when: item.stat.islnk is defined and item.stat.islnk == False
-  #
-  #- name: Create symbolic link for workstation tools needing sudo
-  #  become: true
-  #  file:
-  #    src: "{{ item.src }}"
-  #    dest: "{{ item.dest }}"
-  #    state: link
-  #  loop: "{{ links_to_create_sudo }}"
 
   ## Clones private repos (passwords and stuff)
   #- include_vars: credentials.yml

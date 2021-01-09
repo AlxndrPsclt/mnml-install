@@ -24,4 +24,5 @@ tags
 # Persistent undo
 [._]*.un~
 
+vault-password-file
 # End of https://www.gitignore.io/api/vim,ansible
