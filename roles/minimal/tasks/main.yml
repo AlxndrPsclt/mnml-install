@@ -24,6 +24,7 @@
       - sxhkd
       - picom
       - lightdm
+      - htop
     state: latest
     update_cache: yes
 
@@ -94,16 +95,23 @@
 #TODO: Extract variables like alxndrpsclt and put it in a playbook config file
 #
 
-- name: enable service lightdm
-  become: yes
-  service:
-    name: lightdm
-    state: started
-    enabled: yes
+
+  # Wallpapers
+- name: Create an images directory if it does not exist
+  file:
+    path: "{{ HOME }}/images"
+    state: directory
+    mode: '0755'
+
+- name: Clone personal fundamental wallpapers
+  git:
+    repo: 'git@github.com:AlxndrPsclt/fundmntl-wallpapers.git'
+    dest: "{{ HOME }}/images/fundmntl-wallpapers"
+    key_file: "{{ HOME }}/.ssh/keys/id_ed25519.deploy.github.priv"
+    accept_hostkey: yes
 
 
-
-- name: Create a directory if it does not exist
+- name: Create a config directory if it does not exist
   file:
     path: "{{ HOME }}/.config"
     state: directory
@@ -115,6 +123,51 @@
     dest: "{{ HOME }}/.config/perso"
     key_file: "{{ HOME }}/.ssh/keys/id_ed25519.deploy.github.priv"
     accept_hostkey: yes
+
+
+
+
+- name: Register existence of mnml config links
+  stat:
+    path: "{{ item.dest }}"
+  loop: "{{ links_to_create }}"
+  register: link_register
+
+- name: Remove mnml config file if some default exists (not links)
+  file:
+    path: "{{ item.stat.path }}"
+    state: absent
+  loop: "{{ link_register.results }}"
+  when: item.stat.islnk is defined and item.stat.islnk == False
+
+- name: Create symbolic link for workstation config tools
+  file:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    state: link
+  loop: "{{ links_to_create }}"
+
+
+
+- name: Copy lightdm config for autostart (temporary)
+  copy:
+    src: "{{ CONFIG_PERSO }}/lightdm/lightdm.conf"
+    remote_src: yes
+    dest: "/etc/lightdm/lightdm.conf"
+    owner: "root"
+    group: "root"
+    mode: '0644'
+
+
+
+- name: enable service lightdm
+  become: yes
+  service:
+    name: lightdm
+    state: started
+    enabled: yes
+
+
 
 - name: Create apps directories
   file:
@@ -131,8 +184,8 @@
 
 - name: Clone personal svkbd src
   git:
-    repo: "git@github.com:AlxndrPsclt/mnml-st.git"
-    dest: "{{ HOME }}/apps/suckless/mnml-st"
+    repo: "git@github.com:AlxndrPsclt/mnml-svkbd.git"
+    dest: "{{ HOME }}/apps/suckless/mnml-svkbd"
     key_file: "{{ HOME }}/.ssh/keys/id_ed25519.deploy.github.priv"
     accept_hostkey: yes
 
@@ -145,7 +198,7 @@
     state: latest
     update_cache: yes
 
-- name: Compile minimalistic terminal for mnml
+- name: Compile minimalistic onscreen keaboard for mnml
   shell: ./makeinstall.sh
   args:
     chdir: "{{ HOME }}/apps/suckless/mnml-st"
@@ -153,9 +206,7 @@
 
 
 
-
-
-- name: Clone personal st build
+- name: Clone personal st src
   git:
     repo: "git@github.com:AlxndrPsclt/mnml-st.git"
     dest: "{{ HOME }}/apps/suckless/mnml-st"
@@ -171,25 +222,6 @@
 
 
 
-#- name: Register existence of mnml config links
-#  stat:
-#    path: "{{ item.dest }}"
-#  loop: "{{ links_to_create }}"
-#  register: link_register
-#
-#- name: Remove mnml config file if some default exists (not links)
-#  file:
-#    path: "{{ item.stat.path }}"
-#    state: absent
-#  loop: "{{ link_register.results }}"
-#  when: item.stat.islnk is defined and item.stat.islnk == False
-#
-#- name: Create symbolic link for workstation config tools
-#  file:
-#    src: "{{ item.src }}"
-#    dest: "{{ item.dest }}"
-#    state: link
-#  loop: "{{ links_to_create }}"
 
 
 
