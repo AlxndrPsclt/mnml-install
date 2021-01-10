@@ -13,17 +13,17 @@
       - git
       - vim
       - fzf
-      - onboard
-      - dbus-x11
       - less
       - the_silver_searcher
       - libx11-dev
       - libxft-dev
       - font-iosevka-nerd   #TODO: Check if this works and is the best solution
       - mlocate
-      - buildbase
+      - build-base
       - feh
       - sxhkd
+      - picom
+      - lightdm
     state: latest
     update_cache: yes
 
@@ -78,6 +78,14 @@
   with_fileglob:
     - '{{ LOCAL_HOME }}/.ssh/keys/*.priv'
 
+- name: Copy git{hub,lab} ssh config to allow interacting with the service
+  copy:
+    src: 'files/ssh_basic_config'
+    dest: "{{ HOME }}/.ssh/config"
+    owner: "{{ USER }}"
+    group: 'wheel'
+    mode: '0644'
+
       #- name: Generate local SSH keys
       #  shell: "ssh-keygen -t ed25519 -f {{ HOME }}/.ssh/id_ed25519 -q -N ''"
       #  args:
@@ -85,6 +93,15 @@
 
 #TODO: Extract variables like alxndrpsclt and put it in a playbook config file
 #
+
+- name: enable service lightdm
+  become: yes
+  service:
+    name: lightdm
+    state: started
+    enabled: yes
+
+
 
 - name: Create a directory if it does not exist
   file:
@@ -97,26 +114,96 @@
     repo: 'git@github.com:AlxndrPsclt/mnml-config.git'
     dest: "{{ HOME }}/.config/perso"
     key_file: "{{ HOME }}/.ssh/keys/id_ed25519.deploy.github.priv"
+    accept_hostkey: yes
 
-- name: Register existence of mnml config links
-  stat:
-    path: "{{ item.dest }}"
-  loop: "{{ links_to_create }}"
-  register: link_register
-
-- name: Remove mnml config file if some default exists (not links)
+- name: Create apps directories
   file:
-    path: "{{ item.stat.path }}"
-    state: absent
-  loop: "{{ link_register.results }}"
-  when: item.stat.islnk is defined and item.stat.islnk == False
+    path: "{{ HOME }}/apps"
+    state: directory
 
-- name: Create symbolic link for workstation config tools
+- name: Create apps/suckless directory if it does not exist
   file:
-    src: "{{ item.src }}"
-    dest: "{{ item.dest }}"
-    state: link
-  loop: "{{ links_to_create }}"
+    path: "{{ ansible_env.HOME }}/apps/suckless"
+    state: directory
+
+
+
+
+- name: Clone personal svkbd src
+  git:
+    repo: "git@github.com:AlxndrPsclt/mnml-st.git"
+    dest: "{{ HOME }}/apps/suckless/mnml-st"
+    key_file: "{{ HOME }}/.ssh/keys/id_ed25519.deploy.github.priv"
+    accept_hostkey: yes
+
+- name: Install dependency packages for svkbd compilation install
+  become: yes
+  apk:
+    name:
+      - libxtst-dev
+      - libxinerama-dev
+    state: latest
+    update_cache: yes
+
+- name: Compile minimalistic terminal for mnml
+  shell: ./makeinstall.sh
+  args:
+    chdir: "{{ HOME }}/apps/suckless/mnml-st"
+
+
+
+
+
+
+- name: Clone personal st build
+  git:
+    repo: "git@github.com:AlxndrPsclt/mnml-st.git"
+    dest: "{{ HOME }}/apps/suckless/mnml-st"
+    key_file: "{{ HOME }}/.ssh/keys/id_ed25519.deploy.github.priv"
+    accept_hostkey: yes
+
+- name: Compile minimalistic terminal for mnml
+  shell: ./makeinstall.sh
+  args:
+    chdir: "{{ HOME }}/apps/suckless/mnml-st"
+
+
+
+
+
+#- name: Register existence of mnml config links
+#  stat:
+#    path: "{{ item.dest }}"
+#  loop: "{{ links_to_create }}"
+#  register: link_register
+#
+#- name: Remove mnml config file if some default exists (not links)
+#  file:
+#    path: "{{ item.stat.path }}"
+#    state: absent
+#  loop: "{{ link_register.results }}"
+#  when: item.stat.islnk is defined and item.stat.islnk == False
+#
+#- name: Create symbolic link for workstation config tools
+#  file:
+#    src: "{{ item.src }}"
+#    dest: "{{ item.dest }}"
+#    state: link
+#  loop: "{{ links_to_create }}"
+
+
+
+
+
+
+
+
+
+
+
+
+  # 0-----------------------------------------------
+
 
   ## Clones private repos (passwords and stuff)
   #- include_vars: credentials.yml
