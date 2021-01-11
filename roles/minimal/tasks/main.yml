@@ -29,6 +29,15 @@
     update_cache: yes
 
     #TODO: Add st install
+- name: Install packages usefull for dev
+  become: yes
+  apk:
+    name:
+      - xev
+      - xprop
+    state: latest
+    update_cache: yes
+
 
 - name: Configs git usual name
   git_config:
@@ -150,6 +159,7 @@
 
 
 - name: Copy lightdm config for autostart (temporary)
+  become: yes
   copy:
     src: "{{ CONFIG_PERSO }}/lightdm/lightdm.conf"
     remote_src: yes
@@ -201,8 +211,28 @@
 - name: Compile minimalistic onscreen keaboard for mnml
   shell: ./makeinstall.sh
   args:
-    chdir: "{{ HOME }}/apps/suckless/mnml-st"
+    chdir: "{{ HOME }}/apps/suckless/mnml-svkbd"
 
+
+- name: Clone personal lisgd (gesture recognition) src
+  git:
+    repo: "git@github.com:AlxndrPsclt/mnml-lisgd.git"
+    dest: "{{ HOME }}/apps/suckless/mnml-lisgd"
+    key_file: "{{ HOME }}/.ssh/keys/id_ed25519.deploy.github.priv"
+    accept_hostkey: yes
+
+- name: Install dependency packages for lisgd (gesture recognition) compilation install
+  become: yes
+  apk:
+    name:
+      - libinput-dev
+    state: latest
+    update_cache: yes
+
+- name: Compile minimalistic gesture recognitons for mnml
+  shell: ./makeinstall.sh
+  args:
+    chdir: "{{ HOME }}/apps/suckless/mnml-lisgd"
 
 
 
@@ -212,6 +242,14 @@
     dest: "{{ HOME }}/apps/suckless/mnml-st"
     key_file: "{{ HOME }}/.ssh/keys/id_ed25519.deploy.github.priv"
     accept_hostkey: yes
+
+- name: Install dependency packages for svkbd compilation install
+  become: yes
+  apk:
+    name:
+      - ncurses
+    state: latest
+    update_cache: yes
 
 - name: Compile minimalistic terminal for mnml
   shell: ./makeinstall.sh

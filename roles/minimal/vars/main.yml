@@ -2,3 +2,4 @@
 # vars file for minimal
 links_to_create :
     - { dest: '{{ HOME }}/.config/bspwm', src: '{{ CONFIG_PERSO }}/bspwm' }
+    - { dest: '{{ HOME }}/.config/sxhkd', src: '{{ CONFIG_PERSO }}/sxhkd' }
