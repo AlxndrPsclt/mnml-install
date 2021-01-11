@@ -3,3 +3,6 @@
 links_to_create :
     - { dest: '{{ HOME }}/.config/bspwm', src: '{{ CONFIG_PERSO }}/bspwm' }
     - { dest: '{{ HOME }}/.config/sxhkd', src: '{{ CONFIG_PERSO }}/sxhkd' }
+    - { dest: '{{ HOME }}/.config/conky', src: '{{ CONFIG_PERSO }}/conky' }
+    - { dest: '{{ HOME }}/.config/tmux', src: '{{ CONFIG_PERSO }}/tmux' }
+    - { dest: '{{ HOME }}/.zshrc', src: '{{ CONFIG_PERSO }}/zsh/zshrc' }
