@@ -13,6 +13,7 @@
       - git
       - vim
       - fzf
+      - fd
       - conky
       - less
       - the_silver_searcher
@@ -26,6 +27,7 @@
       - picom
       - lightdm
       - htop
+      - mosh
     state: latest
     update_cache: yes
 
@@ -244,7 +246,7 @@
     key_file: "{{ HOME }}/.ssh/keys/id_ed25519.deploy.github.priv"
     accept_hostkey: yes
 
-- name: Install dependency packages for svkbd compilation install
+- name: Install dependency packages for st compilation install
   become: yes
   apk:
     name:
@@ -258,6 +260,18 @@
     chdir: "{{ HOME }}/apps/suckless/mnml-st"
 
 
+
+- name: Clone mnml dmenu src
+  git:
+    repo: "git@github.com:AlxndrPsclt/mnml-dmenu.git"
+    dest: "{{ HOME }}/apps/suckless/mnml-dmenu"
+    key_file: "{{ HOME }}/.ssh/keys/id_ed25519.deploy.github.priv"
+    accept_hostkey: yes
+
+- name: Compile minimalistic launcher/dmenu for mnml
+  shell: ./makeinstall.sh
+  args:
+    chdir: "{{ HOME }}/apps/suckless/mnml-dmenu"
 
 
 
@@ -302,6 +316,43 @@
     update_cache: yes
 
 
+- name: Clone personal vim config
+  git:
+    repo: "git@github.com:AlxndrPsclt/mnml-vim.git"
+    dest: "{{ HOME }}/.vim"
+    key_file: "{{ HOME }}/.ssh/keys/id_ed25519.deploy.github.priv"
+    accept_hostkey: yes
+
+- name: Clone vundle for vim plugins
+  git:
+    repo: "https://github.com/VundleVim/Vundle.vim.git"
+    dest: "{{ HOME }}/.vim/bundle/Vundle.vim"
+    accept_hostkey: yes
+
+
+
+
+- name: Clone personal surf minimal browser src
+  git:
+    repo: "git@github.com:AlxndrPsclt/mnml-surf.git"
+    dest: "{{ HOME }}/apps/suckless/mnml-surf"
+    key_file: "{{ HOME }}/.ssh/keys/id_ed25519.deploy.github.priv"
+    accept_hostkey: yes
+
+- name: Install dependency packages for surf compilation install
+  become: yes
+  apk:
+    name:
+      - gtk+3.0-dev
+      - webkit2gtk-dev
+      - gcr-dev
+    state: latest
+    update_cache: yes
+
+- name: Compile minimalistic surf browser for mnml
+  shell: ./makeinstall.sh
+  args:
+    chdir: "{{ HOME }}/apps/suckless/mnml-st"
 
 
 
